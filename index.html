@@ -1,0 +1,768 @@
+<!doctype html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Emoji Swap Verify</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0c0f1a;
+      --card: rgba(20, 24, 37, 0.9);
+      --accent: #7cf5b2;
+      --accent-2: #66d0ff;
+      --muted: #9aa2bf;
+      --border: rgba(255, 255, 255, 0.08);
+      --shadow: 0 18px 60px rgba(0, 0, 0, 0.35);
+      --glow: 0 0 40px rgba(124, 245, 178, 0.3);
+      color-scheme: dark;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+      background: radial-gradient(circle at 20% 20%, rgba(124,245,178,0.08), transparent 25%),
+                  radial-gradient(circle at 80% 0%, rgba(102,208,255,0.12), transparent 30%),
+                  radial-gradient(circle at 50% 80%, rgba(124,245,178,0.08), transparent 30%),
+                  var(--bg);
+      color: #f4f6ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      overflow-x: hidden;
+    }
+    main {
+      position: relative;
+      width: min(900px, 100%);
+    }
+    .halo {
+      position: absolute;
+      inset: -8% -6%;
+      background: radial-gradient(ellipse at 50% 40%, rgba(124,245,178,0.1), transparent 55%),
+                  radial-gradient(ellipse at 70% 60%, rgba(102,208,255,0.12), transparent 50%);
+      filter: blur(48px);
+      opacity: 0.75;
+      z-index: 0;
+      pointer-events: none;
+    }
+    .card {
+      position: relative;
+      z-index: 1;
+      background: linear-gradient(145deg, rgba(23, 28, 45, 0.92), rgba(17, 21, 34, 0.92));
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 16px 16px 12px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+      overflow: hidden;
+    }
+    .card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(124,245,178,0.08), rgba(102,208,255,0.06));
+      opacity: 0.7;
+      pointer-events: none;
+    }
+    .card-inner {
+      position: relative;
+      z-index: 1;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 4px 4px 10px;
+    }
+    .title-block {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .title {
+      font-size: clamp(24px, 4vw, 32px);
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      margin: 0;
+      line-height: 1.1;
+    }
+    .pill {
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(124, 245, 178, 0.12);
+      color: var(--accent);
+      border: 1px solid rgba(124, 245, 178, 0.35);
+      font-weight: 600;
+      font-size: 13px;
+      letter-spacing: 0.4px;
+    }
+    .subtitle {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .cta {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
+    }
+    button {
+      border: none;
+      border-radius: 12px;
+      font: inherit;
+      cursor: pointer;
+      transition: transform 140ms ease, box-shadow 140ms ease, opacity 140ms ease;
+      color: #0c101d;
+      background: #f4f6ff;
+      padding: 10px 12px;
+      min-width: 100px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    }
+    button:hover { transform: translateY(-1px); }
+    button:active { transform: translateY(0); }
+    .ghost {
+      background: rgba(255,255,255,0.08);
+      color: #f4f6ff;
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow: none;
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+      margin-top: 8px;
+    }
+    .panel {
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 14px;
+      background: rgba(255,255,255,0.02);
+    }
+    .grid-shell {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      align-items: start;
+    }
+    .grid-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .grid-title h3 {
+      margin: 0;
+      font-size: 15px;
+      letter-spacing: 0.2px;
+      color: #e7ebff;
+    }
+    .emoji-set {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .emoji-chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.08);
+      overflow: hidden;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(80px, 1fr));
+      gap: 8px;
+      width: 100%;
+    }
+    .cell {
+      position: relative;
+      padding: 6px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      aspect-ratio: 1/1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 120ms ease, border-color 120ms ease, box-shadow 120ms ease, background 120ms ease;
+      overflow: hidden;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+    }
+    .cell img {
+      width: 70%;
+      height: 70%;
+      object-fit: contain;
+      user-select: none;
+      pointer-events: none;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.25));
+    }
+    .cell:hover { background: rgba(255,255,255,0.07); }
+    .cell.selected {
+      border-color: rgba(124,245,178,0.6);
+      box-shadow: 0 0 0 2px rgba(124,245,178,0.2), var(--glow);
+      transform: translateY(-1px);
+    }
+    .cell.match {
+      animation: pulse 700ms ease both;
+      border-color: rgba(124,245,178,0.85);
+      background: rgba(124,245,178,0.12);
+    }
+    .cell.shake {
+      animation: shake 320ms ease both;
+      border-color: rgba(255, 87, 122, 0.7);
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.06); box-shadow: 0 0 0 6px rgba(124,245,178,0.18); }
+      100% { transform: scale(1); }
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-4px); }
+      50% { transform: translateX(4px); }
+      75% { transform: translateX(-2px); }
+    }
+    .status {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 14px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+    .stats {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .stat-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 11px;
+      border-radius: 11px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: #e8ecff;
+      min-width: 150px;
+    }
+    .stat-chip strong { font-size: 17px; letter-spacing: 0.2px; }
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 28px;
+      transform: translateX(-50%) translateY(20px);
+      background: rgba(15, 19, 32, 0.92);
+      border: 1px solid rgba(255,255,255,0.08);
+      padding: 12px 16px;
+      border-radius: 14px;
+      color: #f4f6ff;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+      opacity: 0;
+      transition: opacity 200ms ease, transform 200ms ease;
+      pointer-events: none;
+      z-index: 99;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+    .meta {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 8px;
+      line-height: 1.5;
+    }
+    .inline-btn {
+      color: var(--accent);
+      text-decoration: underline;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .banner {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 12px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: rgba(124,245,178,0.08);
+      border: 1px solid rgba(124,245,178,0.35);
+      color: #e8fff3;
+      font-size: 14px;
+    }
+    .note {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+    @media (min-width: 720px) {
+      .layout { grid-template-columns: 1.1fr 0.9fr; }
+      .grid-shell { grid-template-columns: minmax(0, 1fr); }
+    }
+    @media (max-width: 520px) {
+      body { padding: 14px; }
+      button { width: 100%; }
+      .cta { width: 100%; }
+      header { flex-direction: column; align-items: flex-start; }
+      .title-block { width: 100%; }
+    }
+    noscript {
+      display: block;
+      color: #ffb3b3;
+      font-size: 14px;
+      margin-top: 12px;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="halo"></div>
+    <div class="card">
+      <div class="card-inner">
+        <header>
+          <div class="title-block">
+            <div>
+              <h1 class="title">Emoji Swap Verify</h1>
+              <p class="subtitle">移动优先的“一步三连”谜题：找到唯一可行的交换。</p>
+            </div>
+            <span class="pill">唯一解生成 · 3x3</span>
+          </div>
+          <div class="cta">
+            <button id="refresh-btn">下一关</button>
+            <button class="ghost" id="clear-btn">清除记录</button>
+          </div>
+        </header>
+
+        <div class="layout">
+          <section class="panel">
+            <div class="banner">
+              <div><strong>玩法</strong>：点选任意 Emoji，再点相邻格子完成交换；仅有一个交换能形成直线三连。</div>
+              <div class="note">成功自动进入下一局，失误会回滚并刷新谜题。点击“清除记录”可重置统计。</div>
+            </div>
+            <div class="grid-shell">
+              <div class="grid-title">
+                <h3>当前棋盘</h3>
+                <div class="emoji-set" id="emoji-set"></div>
+              </div>
+              <div class="grid" id="grid" role="grid" aria-label="Emoji grid"></div>
+              <div class="status">
+                <div id="status-text">准备开始：寻找唯一解。</div>
+                <div class="stats">
+                  <div class="stat-chip">成功 <strong id="wins">0</strong></div>
+                  <div class="stat-chip">总局数 <strong id="total">0</strong></div>
+                  <div class="stat-chip">成功率 <strong id="rate">0%</strong></div>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section class="panel">
+            <h3 style="margin:0 0 10px;">规则与提示</h3>
+            <p class="meta">· 每局仅可交换 <strong>一次</strong>，且只能上下左右相邻。<br>
+               · 唯一解已验证：全盘没有天然三连，所有其他交换（含斜线判定）都无效。<br>
+               · 如果生成超时，会退化到“至少有解但可能不唯一”的保底状态。</p>
+            <p class="meta">· 数据保存在 `localStorage`，包括成功、总局数与时间戳。<br>
+               · 轻触“下一关”可跳过当前棋盘，不影响统计。<br>
+               · 如果浏览器关闭存储，统计将无法写入。</p>
+            <noscript>需要启用 JavaScript 才能体验游戏。</noscript>
+          </section>
+        </div>
+        <footer class="meta" style="display:flex;justify-content:space-between;gap:8px;align-items:center;padding-top:4px;">
+          <span>MIT License</span>
+          <span style="display:flex;gap:10px;align-items:center;">
+            <a href="https://github.com/senzi/emoji-swap-verify" target="_blank" rel="noopener noreferrer" style="color:var(--accent);text-decoration:underline;">GitHub</a>
+            <span>Vibe-coding</span>
+          </span>
+        </footer>
+      </div>
+    </div>
+  </main>
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const GRID_SIZE = 3;
+    const STORAGE_KEY = 'emoji_game_stats';
+    const EMOJI_POOL = [
+      '1f600','1f603','1f604','1f606','1f609','1f60a','1f60d','1f60e','1f610','1f612',
+      '1f618','1f61b','1f61c','1f61d','1f620','1f621','1f622','1f62d','1f631','1f633',
+      '1f635','1f637','1f644','1f911','1f913','1f914','1f922','1f928','1f929','1f92a',
+      '1f92c','1f92f','1f970'
+    ];
+
+    const gridEl = document.getElementById('grid');
+    const statusEl = document.getElementById('status-text');
+    const emojiSetEl = document.getElementById('emoji-set');
+    const winsEl = document.getElementById('wins');
+    const totalEl = document.getElementById('total');
+    const rateEl = document.getElementById('rate');
+    const toastEl = document.getElementById('toast');
+
+    let state = {
+      board: [],
+      selected: null,
+      locked: false,
+      stats: loadStats(),
+      emojiSet: [],
+      solution: null,
+      unique: true
+    };
+
+    function sampleEmojis() {
+      const shuffled = [...EMOJI_POOL].sort(() => Math.random() - 0.5);
+      return shuffled.slice(0, 3);
+    }
+
+    function hasAnyMatch(board) {
+      for (let r = 0; r < GRID_SIZE; r++) {
+        if (board[r][0] && board[r][0] === board[r][1] && board[r][1] === board[r][2]) return true;
+      }
+      for (let c = 0; c < GRID_SIZE; c++) {
+        if (board[0][c] && board[0][c] === board[1][c] && board[1][c] === board[2][c]) return true;
+      }
+      // diagonals
+      if (board[0][0] && board[0][0] === board[1][1] && board[1][1] === board[2][2]) return true;
+      if (board[0][2] && board[0][2] === board[1][1] && board[1][1] === board[2][0]) return true;
+      return false;
+    }
+
+    function getMatches(board) {
+      const matches = [];
+      for (let r = 0; r < GRID_SIZE; r++) {
+        if (board[r][0] === board[r][1] && board[r][1] === board[r][2]) {
+          matches.push([[r,0],[r,1],[r,2]]);
+        }
+      }
+      for (let c = 0; c < GRID_SIZE; c++) {
+        if (board[0][c] === board[1][c] && board[1][c] === board[2][c]) {
+          matches.push([[0,c],[1,c],[2,c]]);
+        }
+      }
+      if (board[0][0] === board[1][1] && board[1][1] === board[2][2]) {
+        matches.push([[0,0],[1,1],[2,2]]);
+      }
+      if (board[0][2] === board[1][1] && board[1][1] === board[2][0]) {
+        matches.push([[0,2],[1,1],[2,0]]);
+      }
+      return matches;
+    }
+
+    function cloneBoard(board) {
+      return board.map(row => [...row]);
+    }
+
+    function swap(board, a, b) {
+      const temp = board[a[0]][a[1]];
+      board[a[0]][a[1]] = board[b[0]][b[1]];
+      board[b[0]][b[1]] = temp;
+    }
+
+    function neighbors([r, c]) {
+      const list = [];
+      if (r > 0) list.push([r - 1, c]);
+      if (r < GRID_SIZE - 1) list.push([r + 1, c]);
+      if (c > 0) list.push([r, c - 1]);
+      if (c < GRID_SIZE - 1) list.push([r, c + 1]);
+      return list;
+    }
+
+    function solvableSwaps(board) {
+      const swaps = [];
+      for (let r = 0; r < GRID_SIZE; r++) {
+        for (let c = 0; c < GRID_SIZE; c++) {
+          const pos = [r, c];
+          for (const n of neighbors(pos)) {
+            if (r > n[0] || (r === n[0] && c > n[1])) continue; // avoid duplicate pairs
+            swap(board, pos, n);
+            if (hasAnyMatch(board)) swaps.push({ from: pos, to: n, matches: getMatches(board) });
+            swap(board, pos, n);
+          }
+        }
+      }
+      return swaps;
+    }
+
+    function randomInt(max) {
+      return Math.floor(Math.random() * max);
+    }
+
+    function buildBoard({ requireUnique = true, maxTries = 120 }) {
+      for (let attempt = 0; attempt < maxTries; attempt++) {
+        const emojis = sampleEmojis();
+        const board = Array.from({ length: GRID_SIZE }, () =>
+          Array.from({ length: GRID_SIZE }, () => emojis[randomInt(3)])
+        );
+        const targetEmoji = emojis[0];
+        const orientation = Math.random();
+        let lineCells;
+        if (orientation < 0.33) {
+          const row = randomInt(GRID_SIZE);
+          lineCells = [[row,0],[row,1],[row,2]];
+        } else if (orientation < 0.66) {
+          const col = randomInt(GRID_SIZE);
+          lineCells = [[0,col],[1,col],[2,col]];
+        } else {
+          lineCells = Math.random() > 0.5 ? [[0,0],[1,1],[2,2]] : [[0,2],[1,1],[2,0]];
+        }
+        lineCells.forEach(([r,c]) => { board[r][c] = targetEmoji; });
+
+        const pivot = lineCells[randomInt(lineCells.length)];
+        const neighborOptions = neighbors(pivot).filter(([r,c]) => !lineCells.some(([lr,lc]) => lr === r && lc === c));
+        const neighborPos = neighborOptions.length ? neighborOptions[randomInt(neighborOptions.length)] : neighbors(pivot)[0];
+        board[pivot[0]][pivot[1]] = emojis[1];
+        board[neighborPos[0]][neighborPos[1]] = targetEmoji;
+
+        if (hasAnyMatch(board)) continue;
+        const swaps = solvableSwaps(board);
+        if (requireUnique ? swaps.length === 1 : swaps.length >= 1) {
+          return { board, emojis, solution: swaps[0], unique: swaps.length === 1 };
+        }
+      }
+
+      if (requireUnique) {
+        const relaxed = buildBoard({ requireUnique: false, maxTries: 80 });
+        return { ...relaxed, unique: false };
+      }
+
+      // Last-resort deterministic board with a known solution (swap [0,1] & [1,1]).
+      const emojis = sampleEmojis();
+      const board = [
+        [emojis[1], emojis[0], emojis[2]],
+        [emojis[0], emojis[1], emojis[0]],
+        [emojis[2], emojis[2], emojis[1]],
+      ];
+      return { board, emojis, solution: { from: [0,1], to: [1,1], matches: [] }, unique: false };
+    }
+
+    function loadStats() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return { wins: 0, total: 0, timestamp: Date.now() };
+        const parsed = JSON.parse(raw);
+        return {
+          wins: Number(parsed.wins) || 0,
+          total: Number(parsed.total) || 0,
+          timestamp: parsed.timestamp || Date.now()
+        };
+      } catch (err) {
+        console.warn('Storage unavailable', err);
+        return { wins: 0, total: 0, timestamp: Date.now(), disabled: true };
+      }
+    }
+
+    function saveStats() {
+      if (state.stats.disabled) return;
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state.stats));
+      } catch (err) {
+        console.warn('Failed to save stats', err);
+        state.stats.disabled = true;
+        showToast('浏览器存储不可用，统计将无法保存。');
+      }
+    }
+
+    function updateStatsUI() {
+      winsEl.textContent = state.stats.wins;
+      totalEl.textContent = state.stats.total;
+      const rate = state.stats.total > 0 ? ((state.stats.wins / state.stats.total) * 100).toFixed(1) : '0';
+      rateEl.textContent = `${rate}%`;
+    }
+
+    function setStatus(text) {
+      statusEl.textContent = text;
+    }
+
+    function renderEmojiSet() {
+      emojiSetEl.innerHTML = '';
+      state.emojiSet.forEach(code => {
+        const chip = document.createElement('div');
+        chip.className = 'emoji-chip';
+        const img = document.createElement('img');
+        img.src = `assets/emojis/${code}.svg`;
+        img.alt = code;
+        chip.appendChild(img);
+        emojiSetEl.appendChild(chip);
+      });
+      if (!state.unique) {
+        const warn = document.createElement('span');
+        warn.style.color = '#ffb35c';
+        warn.style.fontWeight = '600';
+        warn.textContent = '（保底：可能非唯一）';
+        emojiSetEl.appendChild(warn);
+      }
+    }
+
+    function renderBoard() {
+      gridEl.innerHTML = '';
+      state.board.forEach((row, r) => {
+        row.forEach((emoji, c) => {
+          const cell = document.createElement('div');
+          cell.className = 'cell';
+          cell.setAttribute('role', 'gridcell');
+          cell.dataset.row = r;
+          cell.dataset.col = c;
+          const img = document.createElement('img');
+          img.src = `assets/emojis/${emoji}.svg`;
+          img.alt = emoji;
+          cell.appendChild(img);
+          cell.addEventListener('click', () => handleCellClick([r, c]));
+          cell.addEventListener('touchstart', () => handleCellClick([r, c]), { passive: true });
+          gridEl.appendChild(cell);
+        });
+      });
+    }
+
+    function clearSelection() {
+      state.selected = null;
+      document.querySelectorAll('.cell').forEach(el => el.classList.remove('selected'));
+    }
+
+    function highlightSelection(pos) {
+      clearSelection();
+      const cell = findCell(pos);
+      if (cell) cell.classList.add('selected');
+      state.selected = pos;
+    }
+
+    function findCell([r, c]) {
+      return gridEl.querySelector(`.cell[data-row="${r}"][data-col="${c}"]`);
+    }
+
+    function positionsAdjacent(a, b) {
+      const dr = Math.abs(a[0] - b[0]);
+      const dc = Math.abs(a[1] - b[1]);
+      return dr + dc === 1;
+    }
+
+    function handleCellClick(pos) {
+      if (state.locked) return;
+      if (!state.selected) {
+        highlightSelection(pos);
+        setStatus('选择一个相邻的格子完成交换。');
+        return;
+      }
+      const prev = state.selected;
+      if (prev[0] === pos[0] && prev[1] === pos[1]) {
+        clearSelection();
+        setStatus('重新选择交换目标。');
+        return;
+      }
+      if (!positionsAdjacent(prev, pos)) {
+        showShake(pos);
+        setStatus('只能交换上下左右相邻的格子。');
+        return;
+      }
+      executeSwap(prev, pos);
+    }
+
+    function showShake(pos) {
+      const cell = findCell(pos);
+      if (!cell) return;
+      cell.classList.add('shake');
+      setTimeout(() => cell.classList.remove('shake'), 350);
+    }
+
+    function executeSwap(a, b) {
+      state.locked = true;
+      clearSelection();
+      swap(state.board, a, b);
+      renderBoard();
+      const matches = getMatches(state.board);
+      if (matches.length) {
+        handleSuccess(matches);
+      } else {
+        // revert after a small shake
+        const cellA = findCell(a);
+        const cellB = findCell(b);
+        [cellA, cellB].forEach(el => {
+          if (el) {
+            el.classList.add('shake');
+            setTimeout(() => el.classList.remove('shake'), 350);
+          }
+        });
+        swap(state.board, a, b);
+        state.stats.total += 1;
+        state.stats.timestamp = Date.now();
+        saveStats();
+        updateStatsUI();
+        setStatus('没有连成三排，这局失败。即将刷新新棋盘。');
+        setTimeout(startGame, 650);
+      }
+    }
+
+    function handleSuccess(matches) {
+      state.stats.wins += 1;
+      state.stats.total += 1;
+      state.stats.timestamp = Date.now();
+      saveStats();
+      updateStatsUI();
+      setStatus('成功！捕捉到唯一解，正在加载下一关。');
+      highlightMatches(matches);
+      showToast('太棒了！找到唯一交换。');
+      setTimeout(startGame, 900);
+    }
+
+    function highlightMatches(matches) {
+      matches.forEach(line => {
+        line.forEach(pos => {
+          const cell = findCell(pos);
+          if (cell) cell.classList.add('match');
+        });
+      });
+      setTimeout(() => {
+        document.querySelectorAll('.cell.match').forEach(el => el.classList.remove('match'));
+      }, 600);
+    }
+
+    function showToast(message) {
+      toastEl.textContent = message;
+      toastEl.classList.add('show');
+      setTimeout(() => toastEl.classList.remove('show'), 1800);
+    }
+
+    function clearRecords() {
+      state.stats = { wins: 0, total: 0, timestamp: Date.now(), disabled: state.stats.disabled };
+      try { localStorage.removeItem(STORAGE_KEY); } catch (_) {}
+      updateStatsUI();
+      showToast('记录已清除');
+    }
+
+    function startGame() {
+      state.locked = true;
+      const { board, emojis, solution, unique } = buildBoard({ requireUnique: true });
+      state.board = board;
+      state.emojiSet = emojis;
+      state.solution = solution;
+      state.unique = unique;
+      renderBoard();
+      renderEmojiSet();
+      setStatus(unique ? '棋盘就绪：只有一个交换能三连。' : '棋盘就绪：保底模式，可能存在多解。');
+      state.locked = false;
+    }
+
+    document.getElementById('refresh-btn').addEventListener('click', () => {
+      setStatus('已刷新新棋盘，继续挑战。');
+      startGame();
+    });
+    document.getElementById('clear-btn').addEventListener('click', clearRecords);
+
+    updateStatsUI();
+    startGame();
+  </script>
+</body>
+</html>
