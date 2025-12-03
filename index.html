@@ -20,6 +20,7 @@
       color-scheme: dark;
     }
     * { box-sizing: border-box; }
+    html, body { height: 100%; overflow: hidden; }
     body {
       margin: 0;
       min-height: 100vh;
@@ -28,16 +29,21 @@
                   radial-gradient(circle at 80% 0%, rgba(102,208,255,0.12), transparent 30%),
                   radial-gradient(circle at 50% 80%, rgba(124,245,178,0.08), transparent 30%),
                   var(--bg);
+      background-repeat: no-repeat;
+      background-size: 200% 200%;
       color: #f4f6ff;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 16px;
-      overflow-x: hidden;
+      padding: 12px;
     }
     main {
       position: relative;
-      width: min(900px, 100%);
+      width: min(760px, 100%);
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     .halo {
       position: absolute;
@@ -55,10 +61,14 @@
       background: linear-gradient(145deg, rgba(23, 28, 45, 0.92), rgba(17, 21, 34, 0.92));
       border: 1px solid var(--border);
       border-radius: 24px;
-      padding: 16px 16px 12px;
+      padding: 14px 14px 10px;
       box-shadow: var(--shadow);
       backdrop-filter: blur(10px);
       overflow: hidden;
+      height: 80vh;
+      max-height: 80vh;
+      display: flex;
+      flex-direction: column;
     }
     .card::after {
       content: "";
@@ -71,6 +81,9 @@
     .card-inner {
       position: relative;
       z-index: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
     }
     header {
       display: flex;
@@ -92,16 +105,7 @@
       margin: 0;
       line-height: 1.1;
     }
-    .pill {
-      padding: 6px 12px;
-      border-radius: 999px;
-      background: rgba(124, 245, 178, 0.12);
-      color: var(--accent);
-      border: 1px solid rgba(124, 245, 178, 0.35);
-      font-weight: 600;
-      font-size: 13px;
-      letter-spacing: 0.4px;
-    }
+    .pill { display: none; }
     .subtitle {
       margin: 4px 0 0;
       color: var(--muted);
@@ -122,8 +126,8 @@
       transition: transform 140ms ease, box-shadow 140ms ease, opacity 140ms ease;
       color: #0c101d;
       background: #f4f6ff;
-      padding: 10px 12px;
-      min-width: 100px;
+      padding: 8px 10px;
+      min-width: 96px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.25);
     }
     button:hover { transform: translateY(-1px); }
@@ -137,20 +141,25 @@
     .layout {
       display: grid;
       grid-template-columns: 1fr;
-      gap: 14px;
-      margin-top: 8px;
+      gap: 8px;
+      margin-top: 4px;
+      flex: 1;
+      min-height: 0;
     }
     .panel {
       border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 14px;
+      border-radius: 18px;
+      padding: 10px;
       background: rgba(255,255,255,0.02);
+      height: 100%;
+      min-height: 0;
     }
     .grid-shell {
       display: grid;
       grid-template-columns: 1fr;
       gap: 10px;
       align-items: start;
+      height: 100%;
     }
     .grid-title {
       display: flex;
@@ -184,14 +193,16 @@
     }
     .grid {
       display: grid;
-      grid-template-columns: repeat(3, minmax(80px, 1fr));
-      gap: 8px;
-      width: 100%;
+      grid-template-columns: repeat(3, minmax(34px, 1fr));
+      gap: 5px;
+      width: clamp(270px, 70vw, 360px);
+      align-self: center;
+      justify-self: center;
     }
     .cell {
       position: relative;
-      padding: 6px;
-      border-radius: 14px;
+      padding: 2px;
+      border-radius: 8px;
       background: rgba(255,255,255,0.04);
       border: 1px solid rgba(255,255,255,0.08);
       aspect-ratio: 1/1;
@@ -204,8 +215,8 @@
       box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
     }
     .cell img {
-      width: 70%;
-      height: 70%;
+      width: clamp(28px, 50%, 64px);
+      height: clamp(28px, 50%, 64px);
       object-fit: contain;
       user-select: none;
       pointer-events: none;
@@ -238,15 +249,20 @@
       75% { transform: translateX(-2px); }
     }
     .status {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      display: grid;
+      grid-template-columns: 1.3fr 0.7fr;
       gap: 8px;
+      align-items: center;
       color: var(--muted);
-      font-size: 14px;
-      margin-top: 10px;
-      flex-wrap: wrap;
+      font-size: 13px;
+      margin-top: 4px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 4px;
     }
+    #status-text { min-height: 18px; }
     .stats {
       display: flex;
       gap: 12px;
@@ -342,20 +358,16 @@
               <h1 class="title">Emoji Swap Verify</h1>
               <p class="subtitle">移动优先的“一步三连”谜题：找到唯一可行的交换。</p>
             </div>
-            <span class="pill">唯一解生成 · 3x3</span>
           </div>
           <div class="cta">
-            <button id="refresh-btn">下一关</button>
+            <button id="refresh-btn">换一题</button>
+            <button class="ghost" id="rules-btn">规则</button>
             <button class="ghost" id="clear-btn">清除记录</button>
           </div>
         </header>
 
         <div class="layout">
-          <section class="panel">
-            <div class="banner">
-              <div><strong>玩法</strong>：点选任意 Emoji，再点相邻格子完成交换；仅有一个交换能形成直线三连。</div>
-              <div class="note">成功自动进入下一局，失误会回滚并刷新谜题。点击“清除记录”可重置统计。</div>
-            </div>
+          <section class="panel" style="grid-column: 1 / -1;">
             <div class="grid-shell">
               <div class="grid-title">
                 <h3>当前棋盘</h3>
@@ -363,36 +375,34 @@
               </div>
               <div class="grid" id="grid" role="grid" aria-label="Emoji grid"></div>
               <div class="status">
-                <div id="status-text">准备开始：寻找唯一解。</div>
                 <div class="stats">
-                  <div class="stat-chip">成功 <strong id="wins">0</strong></div>
-                  <div class="stat-chip">总局数 <strong id="total">0</strong></div>
-                  <div class="stat-chip">成功率 <strong id="rate">0%</strong></div>
+                  <div class="stat-chip" style="justify-content:center;">成绩 <strong id="ratio">0/0</strong> <span id="ratio-rate" style="color:var(--muted);font-weight:500;font-size:12px;">(0%)</span></div>
                 </div>
+                <div id="status-text"></div>
               </div>
             </div>
           </section>
-          <section class="panel">
-            <h3 style="margin:0 0 10px;">规则与提示</h3>
-            <p class="meta">· 每局仅可交换 <strong>一次</strong>，且只能上下左右相邻。<br>
-               · 唯一解已验证：全盘没有天然三连，所有其他交换（含斜线判定）都无效。<br>
-               · 如果生成超时，会退化到“至少有解但可能不唯一”的保底状态。</p>
-            <p class="meta">· 数据保存在 `localStorage`，包括成功、总局数与时间戳。<br>
-               · 轻触“下一关”可跳过当前棋盘，不影响统计。<br>
-               · 如果浏览器关闭存储，统计将无法写入。</p>
-            <noscript>需要启用 JavaScript 才能体验游戏。</noscript>
-          </section>
         </div>
-        <footer class="meta" style="display:flex;justify-content:space-between;gap:8px;align-items:center;padding-top:4px;">
+        <footer class="meta" style="display:flex;justify-content:center;gap:12px;align-items:center;padding-top:4px;">
           <span>MIT License</span>
-          <span style="display:flex;gap:10px;align-items:center;">
-            <a href="https://github.com/senzi/emoji-swap-verify" target="_blank" rel="noopener noreferrer" style="color:var(--accent);text-decoration:underline;">GitHub</a>
-            <span>Vibe-coding</span>
-          </span>
+          <a href="https://github.com/senzi/emoji-swap-verify" target="_blank" rel="noopener noreferrer" style="color:var(--accent);text-decoration:underline;">GitHub</a>
+          <span>Vibe-coding</span>
         </footer>
       </div>
     </div>
   </main>
+  <div id="modal-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(4px);z-index:98;align-items:center;justify-content:center;padding:16px;">
+    <div id="modal" style="max-width:520px;width:100%;background:rgba(17,21,34,0.95);border:1px solid var(--border);border-radius:16px;padding:16px;box-shadow:0 20px 50px rgba(0,0,0,0.45);position:relative;">
+      <h3 style="margin:0 0 8px;">规则与提示</h3>
+      <p class="meta" style="margin:0 0 8px;">· 每局仅可交换 <strong>一次</strong>，且只能上下左右相邻。</p>
+      <p class="meta" style="margin:0 0 8px;">· 唯一解已验证：全盘没有天然三连，所有其他交换（含斜线判定）都无效。</p>
+      <p class="meta" style="margin:0 0 8px;">· 如果生成超时，会退化到“至少有解但可能不唯一”的保底状态。</p>
+      <p class="meta" style="margin:0;">· 数据保存在 `localStorage`，包括成功、总局数与时间戳。浏览器禁用存储时无法记录。</p>
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px;">
+        <button class="ghost" id="modal-close">知道了</button>
+      </div>
+    </div>
+  </div>
   <div class="toast" id="toast"></div>
 
   <script>
@@ -408,9 +418,10 @@
     const gridEl = document.getElementById('grid');
     const statusEl = document.getElementById('status-text');
     const emojiSetEl = document.getElementById('emoji-set');
-    const winsEl = document.getElementById('wins');
-    const totalEl = document.getElementById('total');
-    const rateEl = document.getElementById('rate');
+    const ratioEl = document.getElementById('ratio');
+    const ratioRateEl = document.getElementById('ratio-rate');
+    const modalBackdrop = document.getElementById('modal-backdrop');
+    const modalClose = document.getElementById('modal-close');
     const toastEl = document.getElementById('toast');
 
     let state = {
@@ -501,8 +512,9 @@
       return Math.floor(Math.random() * max);
     }
 
-    function buildBoard({ requireUnique = true, maxTries = 120 }) {
-      for (let attempt = 0; attempt < maxTries; attempt++) {
+    function buildBoard({ requireUnique = true, maxTries = 400, timeBudgetMs = 5000 }) {
+      const start = performance.now();
+      for (let attempt = 0; attempt < maxTries && (performance.now() - start) < timeBudgetMs; attempt++) {
         const emojis = sampleEmojis();
         const board = Array.from({ length: GRID_SIZE }, () =>
           Array.from({ length: GRID_SIZE }, () => emojis[randomInt(3)])
@@ -534,19 +546,7 @@
         }
       }
 
-      if (requireUnique) {
-        const relaxed = buildBoard({ requireUnique: false, maxTries: 80 });
-        return { ...relaxed, unique: false };
-      }
-
-      // Last-resort deterministic board with a known solution (swap [0,1] & [1,1]).
-      const emojis = sampleEmojis();
-      const board = [
-        [emojis[1], emojis[0], emojis[2]],
-        [emojis[0], emojis[1], emojis[0]],
-        [emojis[2], emojis[2], emojis[1]],
-      ];
-      return { board, emojis, solution: { from: [0,1], to: [1,1], matches: [] }, unique: false };
+      return null;
     }
 
     function loadStats() {
@@ -577,10 +577,9 @@
     }
 
     function updateStatsUI() {
-      winsEl.textContent = state.stats.wins;
-      totalEl.textContent = state.stats.total;
+      ratioEl.textContent = `${state.stats.wins}/${state.stats.total}`;
       const rate = state.stats.total > 0 ? ((state.stats.wins / state.stats.total) * 100).toFixed(1) : '0';
-      rateEl.textContent = `${rate}%`;
+      ratioRateEl.textContent = `(${rate}%)`;
     }
 
     function setStatus(text) {
@@ -620,8 +619,10 @@
           img.src = `assets/emojis/${emoji}.svg`;
           img.alt = emoji;
           cell.appendChild(img);
-          cell.addEventListener('click', () => handleCellClick([r, c]));
-          cell.addEventListener('touchstart', () => handleCellClick([r, c]), { passive: true });
+          cell.addEventListener('pointerdown', (ev) => {
+            ev.preventDefault();
+            handleCellClick([r, c]);
+          });
           gridEl.appendChild(cell);
         });
       });
@@ -686,7 +687,7 @@
       if (matches.length) {
         handleSuccess(matches);
       } else {
-        // revert after a small shake
+        // revert after a small shake but keep当前棋盘
         const cellA = findCell(a);
         const cellB = findCell(b);
         [cellA, cellB].forEach(el => {
@@ -696,12 +697,13 @@
           }
         });
         swap(state.board, a, b);
+        renderBoard();
         state.stats.total += 1;
         state.stats.timestamp = Date.now();
         saveStats();
         updateStatsUI();
-        setStatus('没有连成三排，这局失败。即将刷新新棋盘。');
-        setTimeout(startGame, 650);
+        setStatus('没有连成三排，可继续尝试本题。');
+        state.locked = false;
       }
     }
 
@@ -711,7 +713,7 @@
       state.stats.timestamp = Date.now();
       saveStats();
       updateStatsUI();
-      setStatus('成功！捕捉到唯一解，正在加载下一关。');
+      setStatus('');
       highlightMatches(matches);
       showToast('太棒了！找到唯一交换。');
       setTimeout(startGame, 900);
@@ -744,14 +746,20 @@
 
     function startGame() {
       state.locked = true;
-      const { board, emojis, solution, unique } = buildBoard({ requireUnique: true });
+      const generated = buildBoard({ requireUnique: true, maxTries: 1200, timeBudgetMs: 5000 });
+      if (!generated || !generated.unique) {
+        setStatus('生成唯一解棋盘失败，请点击“换一题”重试。');
+        state.locked = false;
+        return;
+      }
+      const { board, emojis, solution, unique } = generated;
       state.board = board;
       state.emojiSet = emojis;
       state.solution = solution;
       state.unique = unique;
       renderBoard();
       renderEmojiSet();
-      setStatus(unique ? '棋盘就绪：只有一个交换能三连。' : '棋盘就绪：保底模式，可能存在多解。');
+      setStatus('');
       state.locked = false;
     }
 
@@ -760,6 +768,19 @@
       startGame();
     });
     document.getElementById('clear-btn').addEventListener('click', clearRecords);
+
+    document.getElementById('rules-btn').addEventListener('click', () => {
+      modalBackdrop.style.display = 'flex';
+    });
+    modalClose.addEventListener('click', () => { modalBackdrop.style.display = 'none'; });
+    modalBackdrop.addEventListener('click', (e) => {
+      if (e.target === modalBackdrop) modalBackdrop.style.display = 'none';
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && modalBackdrop.style.display === 'flex') {
+        modalBackdrop.style.display = 'none';
+      }
+    });
 
     updateStatsUI();
     startGame();
